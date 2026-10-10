@@ -1,5 +1,7 @@
 # EmuWorks Core 0.1
 
+Depot du firmware original utilise par [EmuWorks](https://github.com/nat649/emuworks). Les sources sont developpees ici ; l'emulateur embarque une version compilee sous MIT.
+
 Firmware ARM original pour le **materiel emule par EmuWorks**, sous la licence MIT du depot. Le code de demarrage, le calculateur, les pilotes et les glyphes sont ecrits dans ce dossier. Aucun code, image, police ou binaire Epsilon/Omega n'est utilise dans ce firmware.
 
 L'interface utilise des cartes arrondies, un historique aere et des grands caracteres a traits adoucis. La police originale de `font.cjs` est rasterisee a la compilation : le firmware ne recalcule pas ses courbes pendant la saisie. Les petits libelles gardent leurs glyphes bitmap pour rester lisibles sur l'ecran 320 x 240.
@@ -28,16 +30,21 @@ Installer Arm GNU Toolchain (`arm-none-eabi-gcc` et binutils), puis depuis la ra
 ```powershell
 # Si le compilateur n'est pas dans PATH :
 $env:ARM_GCC_BIN = 'C:\chemin\toolchain\bin'
-node firmware/core/build.cjs
-node tests/core.integration.cjs 'C:\Program Files\Renode\bin\Renode.exe'
+node build.cjs
+# Avec le depot emuworks clone a cote :
+node ../emuworks/tests/core.integration.cjs 'C:\Program Files\Renode\bin\Renode.exe' .
 ```
 
-Les produits temporaires vont dans `build/`. Pour mettre a jour les deux images originales embarquees : `node firmware/core/build.cjs --bundle`, puis recompiler l'application .NET. Les images dans `bundled/` sont les seuls binaires de firmware suivis dans Git. Elles permettent de compiler l'application sans installer un compilateur ARM.
+Les produits temporaires vont dans `build/`. Pour mettre a jour les deux images originales embarquees : `node build.cjs --bundle`, puis recompiler l'application .NET. Les images dans `bundled/` sont les seuls binaires de firmware suivis dans Git. Elles permettent de compiler l'application sans installer un compilateur ARM.
 
 Compilation initiale validee avec GCC Arm 12.2 MPACBTI-Rel1. Options principales : Cortex-M7, Thumb, FPU simple precision, `-ffreestanding -nostdlib -fno-builtin`. Aucun runtime C, libgcc ou bibliotheque mathematique n'est lie. Le compilateur est un outil externe, non distribue avec EmuWorks. Les sources sont fournies pour reconstruire et modifier le firmware.
 
 ## Tests
 
-`tests.c` est une image de test distincte, non embarquee dans l'application. Elle execute 45 cas sur le processeur emule : priorites, parentheses, signes, puissance, erreurs et formatage. `tests/core.integration.cjs` verifie ensuite le clavier matriciel, les calculs, l'historique et genere une capture d'ecran dans un dossier temporaire.
+`tests.c` est une image de test distincte, non embarquee dans l'application. Elle execute 45 cas sur le processeur emule : priorites, parentheses, signes, puissance, erreurs et formatage. Le script `tests/core.integration.cjs` du depot EmuWorks verifie ensuite le clavier matriciel, les calculs, l'historique et genere une capture d'ecran dans un dossier temporaire.
 
 Le nom EmuWorks et l'interface de Core identifient ce projet independant. Aucun logo NumWorks n'est embarque. Les eventuelles futures dependances devront etre examinees et accompagnees de leurs notices ; la licence MIT du projet ne change pas la licence d'un composant tiers.
+
+## Mettre a jour le firmware integre a EmuWorks
+
+Compiler avec `node build.cjs --bundle`, puis committer les sources et les deux images dans ce depot. Depuis le depot de l'emulateur, executer `node tools/update-core.cjs ../emuworks-core` et recompiler l'application .NET. Le script refuse un depot modifie et inscrit le commit source et les empreintes SHA-256 dans `firmware/core/source.json`. Committer ensuite la mise a jour dans EmuWorks.
